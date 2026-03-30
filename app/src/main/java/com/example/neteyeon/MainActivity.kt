@@ -19,8 +19,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,13 +46,26 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
-    var shouldShowOnboarding by remember {mutableStateOf(true)}
+    var shouldShowOnboarding by remember { mutableStateOf(true) }
+    var shouldShowAllowing by remember { mutableStateOf(false) }
 
-    Surface(modifier) {
-        if (shouldShowOnboarding) {
-            OnboardingScreen(onContinueClicked = { shouldShowOnboarding = false })
-        } else {
-            Greetings()
+    Surface(modifier = modifier) {
+        when {
+            shouldShowOnboarding -> {
+                OnboardingScreen(
+                    onContinueClicked = { shouldShowOnboarding = false }
+                )
+            }
+
+            !shouldShowAllowing -> {
+                CGUScreen(
+                    onContinueClicked = { shouldShowAllowing = true }
+                )
+            }
+
+            else -> {
+                Allowing()
+            }
         }
     }
 }
@@ -91,7 +108,56 @@ fun OnboardingScreen(
     }
 }
 
+@Composable
+fun CGUScreen(
+    onContinueClicked: () -> Unit,
+    modifier: Modifier = Modifier) {
 
+    var acceptCgu by remember {mutableStateOf(false) }
+
+    Surface(color = MaterialTheme.colorScheme.background) {
+        Column(
+            modifier = modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Conditions Générales d'Utilisation")
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Surface(color = MaterialTheme.colorScheme.background,
+                modifier = Modifier.padding(horizontal = 24.dp)) {
+
+                Text(
+                    text = """
+                Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+                Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, 
+                when an unknown printer took a galley of type and scrambled it to make a type specimen book. 
+                It has survived not only five centuries, but also the leap into electronic typesetting, 
+                remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets 
+                containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker 
+                including versions of Lorem Ipsum.
+            """.trimIndent()
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            AcceptCguCheckbox(
+                content = "J'ai lu et j'accepte les CGU",
+                checked = acceptCgu,
+                onCheckedChange = {acceptCgu = it}
+            )
+
+            Button(
+                modifier = Modifier.padding(vertical = 24.dp),
+                onClick = onContinueClicked,
+                enabled = acceptCgu
+            ) {
+                Text("Continuer")
+            }
+        }
+
+    }
+}
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Surface(color = MaterialTheme.colorScheme.primary) {
@@ -102,11 +168,48 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+fun Allowing(modifier: Modifier = Modifier) {
+    Surface(color = MaterialTheme.colorScheme.primary) {
+        Text(
+            text = "NETeyeON a besoin de votre autorisation",
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+fun AcceptCguCheckbox(
+    content: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+        Text(text = content)
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     NetEyeOnTheme {
         MyApp()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AllowingPreview() {
+    NetEyeOnTheme {
+        Allowing()
     }
 }
 
@@ -131,5 +234,13 @@ fun GreetingsPreview() {
 fun MyAppPreview() {
     NetEyeOnTheme {
         MyApp(Modifier.fillMaxSize())
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CGUScreenPreview() {
+    NetEyeOnTheme {
+        CGUScreen(onContinueClicked = {})
     }
 }
