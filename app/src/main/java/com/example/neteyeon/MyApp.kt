@@ -9,27 +9,37 @@ import com.example.neteyeon.screens.AllowingScreen
 import com.example.neteyeon.screens.CGUScreen
 import com.example.neteyeon.screens.OnboardingScreen
 import com.example.neteyeon.ui.theme.NetEyeOnTheme
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.neteyeon.Screen
 
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
-    var shouldShowOnboarding by remember { mutableStateOf(true) }
-    var shouldShowAllowing by remember { mutableStateOf(false) }
+    val navController = rememberNavController()
 
     Surface(modifier = modifier) {
-        when {
-            shouldShowOnboarding -> {
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Onboarding.route
+        ) {
+            composable(Screen.Onboarding.route) {
                 OnboardingScreen(
-                    onContinueClicked = { shouldShowOnboarding = false }
+                    onContinueClicked = {
+                        navController.navigate(Screen.Cgu.route)
+                    }
                 )
             }
 
-            !shouldShowAllowing -> {
+            composable(Screen.Cgu.route) {
                 CGUScreen(
-                    onContinueClicked = { shouldShowAllowing = true }
+                    onContinueClicked = {
+                        navController.navigate(Screen.Allowing.route)
+                    }
                 )
             }
 
-            else -> {
+            composable(Screen.Allowing.route) {
                 AllowingScreen()
             }
         }
