@@ -1,20 +1,137 @@
 package com.example.neteyeon.screens
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.neteyeon.ui.theme.NetEyeOnTheme
+import androidx.compose.material3.Icon
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.Key
+import com.composables.icons.lucide.Locate
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Wifi
 
 @Composable
-fun AllowingScreen(modifier: Modifier = Modifier) {
-    Surface(color = MaterialTheme.colorScheme.primary) {
-        Text(
-            text = "NETeyeON a besoin de votre autorisation",
+fun AllowingScreen(
+    onContinueClicked: () -> Unit,
+    modifier: Modifier = Modifier) {
+    Surface(color = MaterialTheme.colorScheme.background) {
+        Column(
             modifier = modifier
-        )
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Lucide.Key,
+                contentDescription = "Key"
+            )
+
+            Text(
+                text = "NETeyeON a besoin de votre autorisation",
+                modifier = modifier
+            )
+
+            Spacer(modifier = Modifier.height(100.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 80.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Lucide.Wifi,
+                            contentDescription = "Wifi"
+                        )
+
+                        Column {
+                            Text(
+                                text = "Accès au réseau"
+                            )
+
+                            Text(
+                                text = "Permet de detecter le réseau actuel",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 80.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Lucide.Locate,
+                            contentDescription = "Location"
+                        )
+
+                        Column {
+                            Text(
+                                text = "Accès à la localisation"
+                            )
+                            Text(
+                                text = "Requise par Android pour accéder aux informations Wi-Fi",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(150.dp))
+
+
+            Button(
+                modifier = Modifier.padding(vertical = 24.dp),
+                onClick = onContinueClicked
+            ) {
+                Text("Continuer")
+            }
+
+        }
     }
 }
 
@@ -22,6 +139,6 @@ fun AllowingScreen(modifier: Modifier = Modifier) {
 @Composable
 fun AllowingPreview() {
     NetEyeOnTheme {
-        AllowingScreen()
+        AllowingScreen( onContinueClicked = {})
     }
 }
