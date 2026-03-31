@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.neteyeon.Screen
+import com.example.neteyeon.screens.NetworkScanningScreen
 
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
@@ -51,7 +52,21 @@ fun MyApp(modifier: Modifier = Modifier) {
             composable(Screen.Scanning.route) {
                 WifiScanScreen(
                     onScanClicked = { ipRange ->
-                        // Handle scan click, maybe navigate to results or start scanning logic
+                        navController.navigate(Screen.NetworkScanning.createRoute(ipRange))
+                    }
+                )
+            }
+
+            composable(Screen.NetworkScanning.route) { backStackEntry ->
+                val ipRange = backStackEntry.arguments?.getString("ipRange") ?: ""
+
+                NetworkScanningScreen(
+                    ipRange = ipRange,
+                    onScanClicked = { scanType ->
+                        // suite
+                    },
+                    onBackClicked = {
+                        navController.popBackStack()
                     }
                 )
             }

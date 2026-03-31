@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Locate
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Radar
@@ -22,6 +23,7 @@ import com.example.neteyeon.ui.theme.NetEyeOnTheme
 fun NetworkScanningScreen(
     ipRange: String,
     onScanClicked: (scanType: String) -> Unit,
+    onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var scanType by remember { mutableStateOf("") }
@@ -40,12 +42,26 @@ fun NetworkScanningScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(onClick = onBackClicked) {
+                    Icon(
+                        imageVector = Lucide.ArrowLeft,
+                        contentDescription = "Retour"
+                    )
+                }
+            }
+
             Icon(
                 imageVector = Lucide.Radar,
                 contentDescription = "Radar",
                 modifier = Modifier
                     .size(150.dp)
-                    .padding( 16.dp)
+                    .padding( 25.dp)
             )
 
             Spacer(modifier = Modifier.height(50.dp))
@@ -191,6 +207,6 @@ fun NetworkScanningScreen(
 @Composable
 fun PreviewNetworkScanningScreen() {
     NetEyeOnTheme {
-        NetworkScanningScreen(ipRange = "123.432.132/24", onScanClicked = {})
+        NetworkScanningScreen(ipRange = "123.432.132/24", onScanClicked = {}, onBackClicked = {})
     }
 }
