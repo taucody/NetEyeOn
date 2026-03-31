@@ -33,15 +33,10 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun WifiScanScreen(
-    onScanFinished: (List<DiscoveredDevice>) -> Unit,
+    onContinueClicked: (ipRange: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var ipRange by remember { mutableStateOf("192.168.1.0/24") }
-    var scanning by remember { mutableStateOf(false) }
-    var progress by remember { mutableFloatStateOf(0f) }
-    
-    val scope = rememberCoroutineScope()
-    val scanner = remember { NetworkScanner() }
 
     Column(
         modifier = modifier
@@ -57,51 +52,16 @@ fun WifiScanScreen(
             value = ipRange,
             onValueChange = { ipRange = it },
             label = { Text("Plage d'adresses IP (ex: 192.168.1.0/24)") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !scanning
+            modifier = Modifier.fillMaxWidth()
         )
         
         Spacer(modifier = Modifier.height(16.dp))
         
         Button(
-            onClick = {
-                scanning = true
-                progress = 0f
-                scope.launch {
-                    val results = scanner.scanRange(ipRange) { current, total ->
-                        progress = current.toFloat() / total.toFloat()
-                    }
-                    scanning = false
-                    onScanFinished(results)
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !scanning
+            onClick = { onContinueClicked(ipRange) },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            if (scanning) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Scan en cours...")
-            } else {
-                Text("Lancer le Scan")
-            }
-        }
-
-        if (scanning) {
-            Spacer(modifier = Modifier.height(16.dp))
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(
-                text = "${(progress * 100).toInt()}%",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            Text("Continuer")
         }
     }
 }
@@ -109,5 +69,5 @@ fun WifiScanScreen(
 @Preview(showBackground = true)
 @Composable
 fun WifiScanScreenPreview() {
-    WifiScanScreen(onScanFinished = {})
+    WifiScanScreen(onContinueClicked = {})
 }

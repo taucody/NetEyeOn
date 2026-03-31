@@ -17,16 +17,23 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Radar
 import com.example.neteyeon.screens.CGUScreen
 import com.example.neteyeon.components.AcceptCguCheckbox
+import com.example.neteyeon.models.DiscoveredDevice
+import com.example.neteyeon.network.NetworkScanner
 import com.example.neteyeon.ui.theme.NetEyeOnTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun NetworkScanningScreen(
     ipRange: String,
-    onScanClicked: (scanType: String) -> Unit,
+    onScanFinished: (List<DiscoveredDevice>) -> Unit,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var scanType by remember { mutableStateOf("") }
+    var isScanning by remember { mutableStateOf(false) }
+    var progress by remember { mutableFloatStateOf(0f) }
+    val scope = rememberCoroutineScope()
+    val scanner = remember { NetworkScanner() }
 
     val scanDescription = when (scanType) {
         "Basique" -> "Scan simple et rapide des hôtes disponibles."
@@ -61,7 +68,7 @@ fun NetworkScanningScreen(
                 contentDescription = "Radar",
                 modifier = Modifier
                     .size(150.dp)
-                    .padding( 25.dp)
+                    .padding(25.dp)
             )
 
             Spacer(modifier = Modifier.height(50.dp))
@@ -110,103 +117,111 @@ fun NetworkScanningScreen(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        modifier = Modifier.padding(8.dp),
-                        onClick = { scanType = "Basique" },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (scanType == "Basique")
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = if (scanType == "Basique")
-                                MaterialTheme.colorScheme.onPrimary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    ) {
-                        Text("Basique")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    listOf("Basique", "Avance", "Custom").forEach { type ->
+                        Button(
+                            modifier = Modifier.padding(8.dp),
+                            onClick = { scanType = type },
+                            enabled = !isScanning,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (scanType == type)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = if (scanType == type)
+                                    MaterialTheme.colorScheme.onPrimary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        ) {
+                            Text(type)
+                        }
                     }
-
-                    Button(
-                        modifier = Modifier.padding(8.dp),
-                        onClick = { scanType = "Avance" },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (scanType == "Avance")
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = if (scanType == "Avance")
-                                MaterialTheme.colorScheme.onPrimary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    ) {
-                        Text("Avance")
-                    }
-
-                    Button(
-                        modifier = Modifier.padding(8.dp),
-                        onClick = { scanType = "Custom" },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (scanType == "Custom")
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = if (scanType == "Custom")
-                                MaterialTheme.colorScheme.onPrimary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    ) {
-                        Text("Custom")
-                    }
-
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth(0.85f)
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(0.85f)
 
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.Center
                 ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
 
-                    Text("Description du profil de scan")
+                        Text("Description du profil de scan")
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
+                        Text(
+                            text = scanDescription,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+
+                }
+
+                Spacer(modifier = Modifier.height(100.dp))
+
+                Button(
+                    onClick = {
+                        if (scanType.isNotEmpty() && !isScanning) {
+                            scope.launch {
+                                isScanning = true
+                                progress = 0f
+                                val results = scanner.scanRange(ipRange) { current, total ->
+                                    progress = current.toFloat() / total.toFloat()
+                                }
+                                isScanning = false
+                                onScanFinished(results)
+                            }
+                        }
+                    },
+                    enabled = scanType.isNotEmpty() && !isScanning
+                ) {
+                    if (isScanning) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Scan en cours...")
+                    } else {
+                        Text("Scanner", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+
+                if (isScanning) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth(0.85f)
+                    )
                     Text(
-                        text = scanDescription,
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "${(progress * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-
-
-
-            }
-
-            Spacer(modifier = Modifier.height(100.dp))
-
-            Button(onClick = { onScanClicked(scanType) }) {
-                Text("Scanner", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
-}
+
 
 @Preview
 @Composable
 fun PreviewNetworkScanningScreen() {
     NetEyeOnTheme {
-        NetworkScanningScreen(ipRange = "123.432.132/24", onScanClicked = {}, onBackClicked = {})
+        NetworkScanningScreen(
+            ipRange = "192.168.1.0/24",
+            onScanFinished = {},
+            onBackClicked = {}
+        )
     }
 }
