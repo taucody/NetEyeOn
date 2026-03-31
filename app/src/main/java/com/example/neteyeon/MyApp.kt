@@ -8,6 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.neteyeon.screens.AllowingScreen
 import com.example.neteyeon.screens.CGUScreen
 import com.example.neteyeon.screens.OnboardingScreen
+import com.example.neteyeon.screens.WifiScanScreen
 import com.example.neteyeon.ui.theme.NetEyeOnTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,7 +41,19 @@ fun MyApp(modifier: Modifier = Modifier) {
             }
 
             composable(Screen.Allowing.route) {
-                AllowingScreen()
+                AllowingScreen(
+                    onContinueClicked = {
+                        navController.navigate(Screen.Scanning.route)
+                    }
+                )
+            }
+
+            composable(Screen.Scanning.route) {
+                WifiScanScreen(
+                    onScanClicked = { ipRange ->
+                        // Handle scan click, maybe navigate to results or start scanning logic
+                    }
+                )
             }
         }
     }
