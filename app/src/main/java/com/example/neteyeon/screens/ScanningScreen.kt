@@ -10,10 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -36,13 +33,12 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun WifiScanScreen(
-    onScanClicked: (String) -> Unit,
+    onScanFinished: (List<DiscoveredDevice>) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var ipRange by remember { mutableStateOf("192.168.1.0/24") }
     var scanning by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
-    var discoveredDevices by remember { mutableStateOf<List<DiscoveredDevice>>(emptyList()) }
     
     val scope = rememberCoroutineScope()
     val scanner = remember { NetworkScanner() }
@@ -51,7 +47,8 @@ fun WifiScanScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text("Scanner un réseau Wi-Fi", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
@@ -68,15 +65,14 @@ fun WifiScanScreen(
         
         Button(
             onClick = {
-                onScanClicked(ipRange)
                 scanning = true
-                discoveredDevices = emptyList()
                 progress = 0f
                 scope.launch {
-                    discoveredDevices = scanner.scanRange(ipRange) { current, total ->
+                    val results = scanner.scanRange(ipRange) { current, total ->
                         progress = current.toFloat() / total.toFloat()
                     }
                     scanning = false
+                    onScanFinished(results)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -107,51 +103,11 @@ fun WifiScanScreen(
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text(
-            text = "Appareils trouvés : ${discoveredDevices.size}",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(discoveredDevices) { device ->
-                DeviceItem(device)
-            }
-        }
-    }
-}
-
-@Composable
-fun DeviceItem(device: DiscoveredDevice) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = device.ip, style = MaterialTheme.typography.bodyLarge)
-            device.hostname?.let {
-                Text(text = "Hostname: $it", style = MaterialTheme.typography.bodyMedium)
-            }
-            if (device.openPorts.isNotEmpty()) {
-                Text(
-                    text = "Ports ouverts: ${device.openPorts.joinToString(", ")}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun WifiScanScreenPreview() {
-    WifiScanScreen(onScanClicked = {})
+    WifiScanScreen(onScanFinished = {})
 }

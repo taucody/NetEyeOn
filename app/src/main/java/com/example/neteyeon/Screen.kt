@@ -5,4 +5,5 @@ sealed class Screen(val route: String) {
     object Cgu : Screen("cgu")
     object Allowing : Screen("allowing")
     object Scanning : Screen("scanning")
+    object ScanResults : Screen("scan_results")
 }
