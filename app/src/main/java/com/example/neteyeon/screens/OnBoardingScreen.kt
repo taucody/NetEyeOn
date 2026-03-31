@@ -36,10 +36,13 @@ fun OnboardingScreen(
         )
         Text("NETeyeON")
         Text("network scanner")
+
         Button(
             modifier = Modifier.padding(vertical = 24.dp),
             onClick = onContinueClicked
-        ) {
+        )
+
+        {
             Text("Continuer")
         }
     }
