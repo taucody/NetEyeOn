@@ -1,5 +1,6 @@
 package com.example.neteyeon.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,9 +13,14 @@ import androidx.compose.ui.unit.dp
 import com.example.neteyeon.models.DiscoveredDevice
 
 @Composable
-fun DeviceItem(device: DiscoveredDevice) {
+fun DeviceItem(
+    device: DiscoveredDevice,
+    onClick: () -> Unit = {}
+) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = device.ip, style = MaterialTheme.typography.bodyLarge)

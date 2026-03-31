@@ -19,11 +19,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.neteyeon.components.DeviceItem
 import com.example.neteyeon.models.DiscoveredDevice
+import com.example.neteyeon.ui.theme.NetEyeOnTheme
 
 @Composable
 fun ScanResultsScreen(
     devices: List<DiscoveredDevice>,
     onBackClicked: () -> Unit,
+    onDeviceClicked: (DiscoveredDevice) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -48,7 +50,10 @@ fun ScanResultsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(devices) { device ->
-                DeviceItem(device)
+                DeviceItem(
+                    device = device,
+                    onClick = { onDeviceClicked(device) }
+                )
             }
         }
 
@@ -63,4 +68,19 @@ fun ScanResultsScreen(
     }
 }
 
-
+@Preview(showBackground = true)
+@Composable
+fun ScanResultsScreenPreview() {
+    val sampleDevices = listOf(
+        DiscoveredDevice(ip = "192.168.1.1", hostname = "Router", isReachable = true),
+        DiscoveredDevice(ip = "192.168.1.5", hostname = "My-Laptop", openPorts = listOf(80, 443), isReachable = true),
+        DiscoveredDevice(ip = "192.168.1.10", vendor = "Apple Inc.", isReachable = true)
+    )
+    NetEyeOnTheme {
+        ScanResultsScreen(
+            devices = sampleDevices,
+            onBackClicked = {},
+            onDeviceClicked = {}
+        )
+    }
+}

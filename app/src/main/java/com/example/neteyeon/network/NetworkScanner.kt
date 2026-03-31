@@ -19,8 +19,7 @@ class NetworkScanner {
         val total = ips.size
         var current = 0
 
-        // Use a limited number of concurrent coroutines to avoid overloading
-        val chunkedIps = ips.chunked(20) 
+        val chunkedIps = ips.chunked(20)      // A voir si on peut modifier pour accelerer le scan
         
         for (chunk in chunkedIps) {
             val deferreds = chunk.map { ip ->
@@ -43,7 +42,7 @@ class NetworkScanner {
         Log.d("NetworkScanner", "Scanning IP: $ip")
         return try {
             val address = InetAddress.getByName(ip)
-            if (address.isReachable(1000)) {
+            if (address.isReachable(1000)) {             // timeout
                 val hostname = address.canonicalHostName
                 // Basic port scan for common ports
                 val openPorts = scanCommonPorts(ip)

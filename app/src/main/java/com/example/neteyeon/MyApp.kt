@@ -10,6 +10,7 @@ import com.example.neteyeon.screens.CGUScreen
 import com.example.neteyeon.screens.OnboardingScreen
 import com.example.neteyeon.screens.WifiScanScreen
 import com.example.neteyeon.screens.ScanResultsScreen
+import com.example.neteyeon.screens.DeviceDetailsScreen
 import com.example.neteyeon.ui.theme.NetEyeOnTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,6 +22,7 @@ import com.example.neteyeon.models.DiscoveredDevice
 fun MyApp(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     var scanResults by remember { mutableStateOf<List<DiscoveredDevice>>(emptyList()) }
+    var selectedDevice by remember { mutableStateOf<DiscoveredDevice?>(null) }
 
     Surface(modifier = modifier) {
         NavHost(
@@ -65,8 +67,23 @@ fun MyApp(modifier: Modifier = Modifier) {
                     devices = scanResults,
                     onBackClicked = {
                         navController.popBackStack(Screen.Scanning.route, inclusive = false)
+                    },
+                    onDeviceClicked = { device ->
+                        selectedDevice = device
+                        navController.navigate(Screen.DeviceDetails.route)
                     }
                 )
+            }
+
+            composable(Screen.DeviceDetails.route) {
+                selectedDevice?.let { device ->
+                    DeviceDetailsScreen(
+                        device = device,
+                        onBackClicked = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
             }
         }
     }
