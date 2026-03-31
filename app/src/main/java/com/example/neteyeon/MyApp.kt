@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.neteyeon.Screen
+import com.example.neteyeon.screens.NetworkScanningScreen
 import com.example.neteyeon.models.DiscoveredDevice
 
 @Composable
