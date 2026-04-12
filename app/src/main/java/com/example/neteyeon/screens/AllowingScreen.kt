@@ -1,5 +1,14 @@
 package com.example.neteyeon.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,11 +35,36 @@ import com.composables.icons.lucide.Key
 import com.composables.icons.lucide.Locate
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Wifi
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 @Composable
 fun AllowingScreen(
     onContinueClicked: () -> Unit,
     modifier: Modifier = Modifier) {
+
+    val context = LocalContext.current
+
+    var isLocationGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        isLocationGranted = isGranted  // ✅ Met à jour l'état
+    }
+
     Surface(color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = modifier
@@ -50,53 +84,23 @@ fun AllowingScreen(
             )
 
             Spacer(modifier = Modifier.height(100.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 80.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Lucide.Wifi,
-                            contentDescription = "Wifi"
-                        )
-
-                        Column {
-                            Text(
-                                text = "Accès au réseau"
-                            )
-
-                            Text(
-                                text = "Permet de detecter le réseau actuel",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
+            val prefs = context.getSharedPreferences("permissions", Context.MODE_PRIVATE)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically
             )
             {
                 Surface(
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isLocationGranted) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(16.dp),
+
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 80.dp)
+                        .clickable {
+                            permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                        }
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -126,14 +130,22 @@ fun AllowingScreen(
 
             Button(
                 modifier = Modifier.padding(vertical = 24.dp),
+                enabled = isLocationGranted,
                 onClick = onContinueClicked
             ) {
                 Text("Continuer")
+            }
+            if (!isLocationGranted) {
+                Text(
+                    text = "Pour utiliser NETeyeON, autorisez la localisation",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
