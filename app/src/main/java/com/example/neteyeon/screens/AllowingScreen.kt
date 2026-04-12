@@ -135,6 +135,12 @@ fun AllowingScreen(
             ) {
                 Text("Continuer")
             }
+            if (!isLocationGranted) {
+                Text(
+                    text = "Pour utiliser NETeyeON, autorisez la localisation",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
         }
     }
