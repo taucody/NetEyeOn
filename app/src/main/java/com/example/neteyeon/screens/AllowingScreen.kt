@@ -1,5 +1,14 @@
 package com.example.neteyeon.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,11 +35,27 @@ import com.composables.icons.lucide.Key
 import com.composables.icons.lucide.Locate
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Wifi
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 @Composable
 fun AllowingScreen(
     onContinueClicked: () -> Unit,
     modifier: Modifier = Modifier) {
+
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission accordée
+        } else {
+            // Permission refusée
+        }
+    }
+
     Surface(color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = modifier
@@ -86,6 +111,7 @@ fun AllowingScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
+            val prefs = context.getSharedPreferences("permissions", Context.MODE_PRIVATE)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -94,9 +120,13 @@ fun AllowingScreen(
                 Surface(
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(16.dp),
+
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 80.dp)
+                        .clickable {
+                            permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                        }
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -134,6 +164,7 @@ fun AllowingScreen(
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
