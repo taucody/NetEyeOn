@@ -7,9 +7,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
+import android.net.wifi.ScanResult
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +25,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,6 +63,7 @@ fun WifiScanScreen(
     onContinueClicked: (ipRange: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Log.d("WIFI_SCAN", "Composable démarré")
     val context = LocalContext.current
     val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
     val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -68,6 +74,7 @@ fun WifiScanScreen(
     var bssid by remember { mutableStateOf<String?>(null) }
     var rssi by remember { mutableStateOf<Int?>(null) }
     var ipRange by remember { mutableStateOf("Indisponible") }
+    var availableNetworks by remember { mutableStateOf<List<ScanResult>>(emptyList()) }
 
     // Fonction de mise à jour
     fun updateNetworkInfo() {
@@ -91,21 +98,46 @@ fun WifiScanScreen(
         ipRange = ipAddress ?: "Indisponible"
     }
 
-    // ✅ BroadcastReceiver
+    // BroadcastReceiver
     DisposableEffect(Unit) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
-                updateNetworkInfo()
+                when (intent.action) {
+                    WifiManager.NETWORK_STATE_CHANGED_ACTION,
+                    ConnectivityManager.CONNECTIVITY_ACTION -> {
+                        updateNetworkInfo()
+                    }
+                    WifiManager.SCAN_RESULTS_AVAILABLE_ACTION -> {
+                        try {
+                            val results = wifiManager.scanResults
+                            Log.d("WIFI_SCAN", "Nombre de réseaux trouvés: ${results.size}")
+                            results.forEach { Log.d("WIFI_SCAN", "Réseau: ${it.SSID}") }
+                            availableNetworks = results.distinctBy { it.BSSID }
+                        } catch (e: SecurityException) {
+                            Log.e("WIFI_SCAN", "SecurityException: ${e.message}")
+                            availableNetworks = emptyList()
+                        }
+                    }
+                }
             }
         }
 
         val filter = IntentFilter().apply {
             addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION)
             addAction(ConnectivityManager.CONNECTIVITY_ACTION)
+            addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
         }
 
         context.registerReceiver(receiver, filter)
-        updateNetworkInfo() // Charge au démarrage
+        updateNetworkInfo()
+
+        try {
+            @Suppress("DEPRECATION")
+            val scanStarted = wifiManager.startScan()
+            Log.d("WIFI_SCAN", "Scan démarré: $scanStarted")
+        } catch (e: SecurityException) {
+            Log.e("WIFI_SCAN", "SecurityException startScan: ${e.message}")
+        }
 
         onDispose {
             context.unregisterReceiver(receiver)
@@ -174,12 +206,39 @@ fun WifiScanScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = ipRange,
-            onValueChange = { ipRange = it },
-            label = { Text("Plage d'adresses IP (ex: 192.168.1.0/24)") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Text("Réseaux disponibles", style = MaterialTheme.typography.titleMedium)
+
+        LazyColumn (
+            modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 600.dp)
+        ){
+            items(availableNetworks) { network ->
+                Surface(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(imageVector = Lucide.Wifi, contentDescription = "Wifi")
+                        Column {
+                            Text(text = network.SSID.ifEmpty { "Réseau caché" })
+                            Text(
+                                text = "Signal : ${network.level} dBm · ${if (network.frequency > 4000) "5GHz" else "2.4GHz"}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+        }
         
         Spacer(modifier = Modifier.height(16.dp))
         

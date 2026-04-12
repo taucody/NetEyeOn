@@ -43,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun AllowingScreen(
@@ -54,7 +56,7 @@ fun AllowingScreen(
     var isLocationGranted by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
-                context, Manifest.permission.ACCESS_COARSE_LOCATION
+                context, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
@@ -99,7 +101,9 @@ fun AllowingScreen(
                         .fillMaxWidth()
                         .heightIn(min = 80.dp)
                         .clickable {
-                            permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                            permissionLauncher.launch(
+                                    Manifest.permission.ACCESS_FINE_LOCATION
+                                )
                         }
                 ) {
                     Row(
