@@ -36,6 +36,10 @@ import com.composables.icons.lucide.Locate
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Wifi
 import androidx.compose.foundation.clickable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -46,14 +50,19 @@ fun AllowingScreen(
     modifier: Modifier = Modifier) {
 
     val context = LocalContext.current
+
+    var isLocationGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (isGranted) {
-            // Permission accordée
-        } else {
-            // Permission refusée
-        }
+        isLocationGranted = isGranted  // ✅ Met à jour l'état
     }
 
     Surface(color = MaterialTheme.colorScheme.background) {
@@ -118,7 +127,8 @@ fun AllowingScreen(
             )
             {
                 Surface(
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isLocationGranted) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(16.dp),
 
                     modifier = Modifier
