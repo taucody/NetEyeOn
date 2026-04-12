@@ -1,7 +1,5 @@
 package com.example.neteyeon.screens
 
-import android.Manifest
-import android.R
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -13,7 +11,6 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,38 +20,27 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.Locate
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Wifi
-import com.example.neteyeon.models.DiscoveredDevice
-import com.example.neteyeon.network.NetworkScanner
-import kotlinx.coroutines.launch
 import java.net.Inet4Address
 
 
@@ -112,7 +98,11 @@ fun WifiScanScreen(
                             val results = wifiManager.scanResults
                             Log.d("WIFI_SCAN", "Nombre de réseaux trouvés: ${results.size}")
                             results.forEach { Log.d("WIFI_SCAN", "Réseau: ${it.SSID}") }
-                            availableNetworks = results.distinctBy { it.BSSID }
+                            availableNetworks = results
+                                .distinctBy {
+                                    if (it.SSID.isEmpty()) it.BSSID 
+                                    else it.SSID
+                                }
                         } catch (e: SecurityException) {
                             Log.e("WIFI_SCAN", "SecurityException: ${e.message}")
                             availableNetworks = emptyList()
