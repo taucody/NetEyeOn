@@ -84,42 +84,6 @@ fun AllowingScreen(
             )
 
             Spacer(modifier = Modifier.height(100.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 80.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Lucide.Wifi,
-                            contentDescription = "Wifi"
-                        )
-
-                        Column {
-                            Text(
-                                text = "Accès au réseau"
-                            )
-
-                            Text(
-                                text = "Permet de detecter le réseau actuel",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
             val prefs = context.getSharedPreferences("permissions", Context.MODE_PRIVATE)
 
             Row(
@@ -166,6 +130,7 @@ fun AllowingScreen(
 
             Button(
                 modifier = Modifier.padding(vertical = 24.dp),
+                enabled = isLocationGranted,
                 onClick = onContinueClicked
             ) {
                 Text("Continuer")
