@@ -1,5 +1,6 @@
 package com.example.neteyeon.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -174,14 +175,29 @@ fun NetworkScanningScreen(
                 onClick = {
                     if (scanType.isNotEmpty() && !isScanning) {
                         scope.launch {
-                            isScanning = true
-                            progress = 0f
-                            val results = scanner.scanRange(ipRange) { current, total ->
-                                progress = current.toFloat() / total.toFloat()
+                            try {
+                                isScanning = true
+                                progress = 0f
+
+                                val results = scanner.scanRange(ipRange, scanType) { current, total ->
+                                    progress = if (total > 0) {
+                                        current.toFloat() / total.toFloat()
+                                    } else {
+                                        0f
+                                    }
+                                }
+
+                                val report = SecurityScorer.evaluate(results)
+                                try {
+                                    onScanFinished(results, report)
+                                } catch (e: Exception) {
+                                    Log.e("SCAN_CALLBACK", "Erreur dans onScanFinished", e)
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            } finally {
+                                isScanning = false
                             }
-                            val report = SecurityScorer.evaluate(results)
-                            isScanning = false
-                            onScanFinished(results, report)
                         }
                     }
                 },
