@@ -100,7 +100,7 @@ fun WifiScanScreen(
                             results.forEach { Log.d("WIFI_SCAN", "Réseau: ${it.SSID}") }
                             availableNetworks = results
                                 .distinctBy {
-                                    if (it.SSID.isEmpty()) it.BSSID 
+                                    if (it.SSID.isEmpty()) it.BSSID
                                     else it.SSID
                                 }
                         } catch (e: SecurityException) {
@@ -200,8 +200,8 @@ fun WifiScanScreen(
 
         LazyColumn (
             modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(max = 600.dp)
+                .fillMaxWidth()
+                .heightIn(max = 600.dp)
         ){
             items(availableNetworks) { network ->
                 Surface(
@@ -229,9 +229,9 @@ fun WifiScanScreen(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         Button(
             onClick = { onContinueClicked(ipRange) },
             modifier = Modifier.fillMaxWidth()

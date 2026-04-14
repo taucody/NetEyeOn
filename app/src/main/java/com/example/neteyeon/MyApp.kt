@@ -20,12 +20,14 @@ import androidx.navigation.navArgument
 import com.example.neteyeon.Screen
 import com.example.neteyeon.screens.NetworkScanningScreen
 import com.example.neteyeon.models.DiscoveredDevice
+import com.example.neteyeon.network.NetworkSecurityReport
 
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    var scanResults by remember { mutableStateOf<List<DiscoveredDevice>>(emptyList()) }
     var selectedDevice by remember { mutableStateOf<DiscoveredDevice?>(null) }
+    var scanResults by remember { mutableStateOf<List<DiscoveredDevice>>(emptyList()) }
+    var securityReport by remember { mutableStateOf<NetworkSecurityReport?>(null) }
 
     Surface(modifier = modifier) {
         NavHost(
@@ -71,9 +73,10 @@ fun MyApp(modifier: Modifier = Modifier) {
                 val ipRange = backStackEntry.arguments?.getString("ipRange") ?: ""
                 NetworkScanningScreen(
                     ipRange = ipRange,
-                    onScanFinished = { results ->
-                        scanResults = results
-                        navController.navigate(Screen.ScanResults.route)
+                    onScanFinished = { devices, report ->
+                        scanResults = devices
+                        securityReport = report
+                        navController.navigate("results")
                     },
                     onBackClicked = { navController.popBackStack() }
                 )
@@ -82,6 +85,7 @@ fun MyApp(modifier: Modifier = Modifier) {
             composable(Screen.ScanResults.route) {
                 ScanResultsScreen(
                     devices = scanResults,
+                    report = securityReport,
                     onBackClicked = {
                         navController.popBackStack(Screen.Scanning.route, inclusive = false)
                     },

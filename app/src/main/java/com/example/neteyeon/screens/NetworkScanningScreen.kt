@@ -19,13 +19,15 @@ import com.example.neteyeon.screens.CGUScreen
 import com.example.neteyeon.components.AcceptCguCheckbox
 import com.example.neteyeon.models.DiscoveredDevice
 import com.example.neteyeon.network.NetworkScanner
+import com.example.neteyeon.network.NetworkSecurityReport
+import com.example.neteyeon.network.SecurityScorer
 import com.example.neteyeon.ui.theme.NetEyeOnTheme
 import kotlinx.coroutines.launch
 
 @Composable
 fun NetworkScanningScreen(
     ipRange: String,
-    onScanFinished: (List<DiscoveredDevice>) -> Unit,
+    onScanFinished: (List<DiscoveredDevice>, NetworkSecurityReport) -> Unit,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -140,78 +142,79 @@ fun NetworkScanningScreen(
                 }
             }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(0.85f)
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth(0.85f)
 
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
 
-                        Text("Description du profil de scan")
+                    Text("Description du profil de scan")
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(
-                            text = scanDescription,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-
-                }
-
-                Spacer(modifier = Modifier.height(100.dp))
-
-                Button(
-                    onClick = {
-                        if (scanType.isNotEmpty() && !isScanning) {
-                            scope.launch {
-                                isScanning = true
-                                progress = 0f
-                                val results = scanner.scanRange(ipRange) { current, total ->
-                                    progress = current.toFloat() / total.toFloat()
-                                }
-                                isScanning = false
-                                onScanFinished(results)
-                            }
-                        }
-                    },
-                    enabled = scanType.isNotEmpty() && !isScanning
-                ) {
-                    if (isScanning) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Scan en cours...")
-                    } else {
-                        Text("Scanner", style = MaterialTheme.typography.titleMedium)
-                    }
-                }
-
-                if (isScanning) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.fillMaxWidth(0.85f)
-                    )
                     Text(
-                        text = "${(progress * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp)
+                        text = scanDescription,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
+
+
+            }
+
+            Spacer(modifier = Modifier.height(100.dp))
+
+            Button(
+                onClick = {
+                    if (scanType.isNotEmpty() && !isScanning) {
+                        scope.launch {
+                            isScanning = true
+                            progress = 0f
+                            val results = scanner.scanRange(ipRange) { current, total ->
+                                progress = current.toFloat() / total.toFloat()
+                            }
+                            val report = SecurityScorer.evaluate(results)
+                            isScanning = false
+                            onScanFinished(results, report)
+                        }
+                    }
+                },
+                enabled = scanType.isNotEmpty() && !isScanning
+            ) {
+                if (isScanning) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Scan en cours...")
+                } else {
+                    Text("Scanner", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+
+            if (isScanning) {
+                Spacer(modifier = Modifier.height(16.dp))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth(0.85f)
+                )
+                Text(
+                    text = "${(progress * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
             }
         }
     }
+}
 
 
 @Preview
@@ -220,7 +223,7 @@ fun PreviewNetworkScanningScreen() {
     NetEyeOnTheme {
         NetworkScanningScreen(
             ipRange = "192.168.1.0/24",
-            onScanFinished = {},
+            onScanFinished = {} as (List<DiscoveredDevice>, NetworkSecurityReport) -> Unit,
             onBackClicked = {}
         )
     }
