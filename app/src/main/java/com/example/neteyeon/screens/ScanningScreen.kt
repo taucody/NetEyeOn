@@ -77,11 +77,35 @@ fun WifiScanScreen(
         ssid = wifiInfo?.ssid
         bssid = wifiInfo?.bssid
         rssi = wifiInfo?.rssi
-        ipAddress = linkProperties?.linkAddresses
+
+        val linkAddress = linkProperties?.linkAddresses
             ?.firstOrNull { it.address is Inet4Address }
-            ?.address
-            ?.hostAddress
-        ipRange = ipAddress ?: "Indisponible"
+
+        ipAddress = linkAddress?.address?.hostAddress
+
+        if (linkAddress != null) {
+            val address = linkAddress.address
+            val prefixLength = linkAddress.prefixLength
+            val bytes = address.address
+
+            // Calcul de l'adresse réseau
+            var ipInt = 0
+            for (b in bytes) {
+                ipInt = (ipInt shl 8) or (b.toInt() and 0xFF)
+            }
+
+            val mask = if (prefixLength == 0) 0 else (-1 shl (32 - prefixLength))
+            val networkInt = ipInt and mask
+
+            val n1 = (networkInt shr 24) and 0xFF
+            val n2 = (networkInt shr 16) and 0xFF
+            val n3 = (networkInt shr 8) and 0xFF
+            val n4 = networkInt and 0xFF
+
+            ipRange = "$n1.$n2.$n3.$n4/$prefixLength"
+        } else {
+            ipRange = "Indisponible"
+        }
     }
 
     // BroadcastReceiver
