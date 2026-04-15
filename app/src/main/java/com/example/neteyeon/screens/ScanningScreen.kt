@@ -64,19 +64,22 @@ fun WifiScanScreen(
 
     // Fonction de mise à jour
     fun updateNetworkInfo() {
-        val networkInfo = connectivityManager.activeNetwork
-        val linkProperties = connectivityManager.getLinkProperties(networkInfo)
-        val capabilities = connectivityManager.getNetworkCapabilities(networkInfo)
-        val wifiInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            capabilities?.transportInfo as? WifiInfo
-        } else {
-            @Suppress("DEPRECATION")
-            wifiManager.connectionInfo
-        }
+        val network = connectivityManager.activeNetwork
+        val linkProperties = connectivityManager.getLinkProperties(network)
+        
+        // Sur Android 14+, WifiManager.connectionInfo nécessite ACCESS_FINE_LOCATION et le GPS activé
+        @Suppress("DEPRECATION")
+        val wifiInfo = wifiManager.connectionInfo
 
-        ssid = wifiInfo?.ssid
-        bssid = wifiInfo?.bssid
-        rssi = wifiInfo?.rssi
+        if (wifiInfo != null) {
+            val rawSsid = wifiInfo.ssid.removePrefix("\"").removeSuffix("\"")
+            ssid = if (rawSsid == "<unknown ssid>" || rawSsid == "0.0.0.0") null else rawSsid
+            
+            val rawBssid = wifiInfo.bssid
+            bssid = if (rawBssid == "02:00:00:00:00:00" || rawBssid == null) null else rawBssid
+            
+            rssi = if (wifiInfo.rssi == -127) null else wifiInfo.rssi
+        }
 
         val linkAddress = linkProperties?.linkAddresses
             ?.firstOrNull { it.address is Inet4Address }
@@ -121,7 +124,6 @@ fun WifiScanScreen(
                         try {
                             val results = wifiManager.scanResults
                             Log.d("WIFI_SCAN", "Nombre de réseaux trouvés: ${results.size}")
-                            results.forEach { Log.d("WIFI_SCAN", "Réseau: ${it.SSID}") }
                             availableNetworks = results
                                 .distinctBy {
                                     if (it.SSID.isEmpty()) it.BSSID
@@ -147,8 +149,7 @@ fun WifiScanScreen(
 
         try {
             @Suppress("DEPRECATION")
-            val scanStarted = wifiManager.startScan()
-            Log.d("WIFI_SCAN", "Scan démarré: $scanStarted")
+            wifiManager.startScan()
         } catch (e: SecurityException) {
             Log.e("WIFI_SCAN", "SecurityException startScan: ${e.message}")
         }
@@ -190,25 +191,25 @@ fun WifiScanScreen(
                     )
 
                     Column {
-                        Text(text = "Réseau Wi-Fi actuellement connecté")
+                        Text(text = "Réseau Wi-Fi actuel")
 
-                        if (ssid == null || ipAddress == null) {
+                        if (ipAddress == null) {
                             Text(
-                                text = "Veuillez vous connecter à un réseau Wi-Fi",
+                                text = "Non connecté au Wi-Fi",
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         } else {
-                            Text(text = "Nom du réseau : $ssid")
+                            Text(text = "Nom : ${ssid ?: "Inconnu (Activez le GPS)"}")
                             Text(
-                                text = "Adresse IP : $ipAddress",
+                                text = "IP : $ipAddress",
                                 style = MaterialTheme.typography.bodySmall
                             )
                             Text(
-                                text = "Adresse MAC : $bssid",
+                                text = "MAC : ${bssid ?: "Masquée (Permissions requises)"}",
                                 style = MaterialTheme.typography.bodySmall
                             )
                             Text(
-                                text = "Force du signal : $rssi",
+                                text = "Signal : ${rssi ?: "N/A"} dBm",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -219,7 +220,7 @@ fun WifiScanScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Réseaux disponibles", style = MaterialTheme.typography.titleMedium)
+        Text("Réseaux à proximité", style = MaterialTheme.typography.titleMedium)
 
         LazyColumn (
             modifier = Modifier
