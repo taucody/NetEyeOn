@@ -35,7 +35,7 @@ fun OnboardingScreen(
                 .padding(bottom = 16.dp)
         )
         Text("NETeyeON")
-        Text("network scanner")
+        Text("Voir son réseau, c’est déjà mieux le protéger")
 
         Button(
             modifier = Modifier.padding(vertical = 24.dp),
