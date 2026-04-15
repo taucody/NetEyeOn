@@ -138,8 +138,7 @@ fun WifiScanScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Scanner un réseau Wi-Fi", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
@@ -201,7 +200,7 @@ fun WifiScanScreen(
         LazyColumn (
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 600.dp)
+                .weight(1f)
         ){
             items(availableNetworks) { network ->
                 Surface(
