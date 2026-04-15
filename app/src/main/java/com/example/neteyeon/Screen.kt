@@ -7,6 +7,7 @@ sealed class Screen(val route: String) {
     object Cgu : Screen("cgu")
     object Allowing : Screen("allowing")
     object Scanning : Screen("scanning")
+    object History : Screen("history")
     object NetworkScanning : Screen("network_scanning/{ipRange}") {
         fun createRoute(ipRange: String) = "network_scanning/${Uri.encode(ipRange)}"
     }

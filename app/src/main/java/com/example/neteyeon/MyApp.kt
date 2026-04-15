@@ -26,6 +26,7 @@ import com.example.neteyeon.Screen
 import com.example.neteyeon.screens.NetworkScanningScreen
 import com.example.neteyeon.models.DiscoveredDevice
 import com.example.neteyeon.network.NetworkSecurityReport
+import com.example.neteyeon.screens.HistoryScreen
 
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
@@ -85,6 +86,17 @@ fun MyApp(modifier: Modifier = Modifier) {
                 WifiScanScreen(
                     onContinueClicked = { ipRange ->
                         navController.navigate(Screen.NetworkScanning.createRoute(ipRange))
+                    },
+                    onHistoryClicked = {
+                        navController.navigate(Screen.History.route)
+                    }
+                )
+            }
+
+            composable(Screen.History.route) {
+                HistoryScreen(
+                    onBackClicked = {
+                        navController.popBackStack()
                     }
                 )
             }

@@ -6,9 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.wifi.ScanResult
-import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
-import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -20,12 +18,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +48,7 @@ import java.net.Inet4Address
 @Composable
 fun WifiScanScreen(
     onContinueClicked: (ipRange: String) -> Unit,
+    onHistoryClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Log.d("WIFI_SCAN", "Composable démarré")
@@ -256,11 +258,25 @@ fun WifiScanScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = { onContinueClicked(ipRange) },
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Continuer")
+            OutlinedButton(
+                onClick = onHistoryClicked,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Historique")
+            }
+            
+            Button(
+                onClick = { onContinueClicked(ipRange) },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Continuer")
+            }
         }
     }
 }
@@ -268,5 +284,5 @@ fun WifiScanScreen(
 @Preview(showBackground = true)
 @Composable
 fun WifiScanScreenPreview() {
-    WifiScanScreen(onContinueClicked = {})
+    WifiScanScreen(onContinueClicked = {}, onHistoryClicked = {})
 }
