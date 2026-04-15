@@ -14,4 +14,8 @@ sealed class Screen(val route: String) {
     }
     object ScanResults : Screen("results")
     object DeviceDetails : Screen("device_details")
+
+    object ExportReport : Screen("export_report/{historyId}") {
+        fun createRoute(historyId: String) = "export_report/$historyId"
+    }
 }

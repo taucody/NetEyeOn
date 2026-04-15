@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Download
+import com.composables.icons.lucide.Lucide
 import com.example.neteyeon.components.DeviceItem
 import com.example.neteyeon.models.DiscoveredDevice
 import com.example.neteyeon.models.Severity
@@ -26,6 +28,7 @@ fun ScanResultsScreen(
     report: NetworkSecurityReport?,
     onBackClicked: () -> Unit,
     onDeviceClicked: (DiscoveredDevice) -> Unit,
+    onExportClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -93,6 +96,18 @@ fun ScanResultsScreen(
         ) {
             Text("Nouveau Scan")
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = onExportClicked,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Lucide.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Télécharger le rapport du scan")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -227,7 +242,8 @@ fun ScanResultsScreenPreview() {
             devices = sampleDevices,
             report = sampleReport,
             onBackClicked = {},
-            onDeviceClicked = {}
+            onDeviceClicked = {},
+            onExportClicked = {}
         )
     }
 }

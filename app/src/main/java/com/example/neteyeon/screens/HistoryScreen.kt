@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Calendar
 import com.composables.icons.lucide.ChevronRight
+import com.composables.icons.lucide.Download
 import com.composables.icons.lucide.Lucide
 import com.example.neteyeon.models.ScanHistoryItem
 import java.text.SimpleDateFormat
@@ -36,6 +37,7 @@ import java.util.Locale
 fun HistoryScreen(
     history: List<ScanHistoryItem>,
     onItemClicked: (ScanHistoryItem) -> Unit,
+    onExportClicked: (ScanHistoryItem) -> Unit,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -85,7 +87,8 @@ fun HistoryScreen(
                     HistoryItemRow(
                         item = item,
                         formattedDate = dateFormat.format(item.date),
-                        onClick = { onItemClicked(item) }
+                        onClick = { onItemClicked(item) },
+                        onExportClick = { onExportClicked(item) }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 8.dp),
@@ -102,7 +105,8 @@ fun HistoryScreen(
 fun HistoryItemRow(
     item: ScanHistoryItem,
     formattedDate: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onExportClick: () -> Unit
 ) {
     Surface(
         onClick = onClick,
@@ -114,7 +118,7 @@ fun HistoryItemRow(
                 .fillMaxWidth()
                 .padding(vertical = 12.dp, horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -154,6 +158,14 @@ fun HistoryItemRow(
                     text = "${item.devices.size} appareil(s) détecté(s)",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
+                )
+            }
+
+            IconButton(onClick = onExportClick) {
+                Icon(
+                    imageVector = Lucide.Download,
+                    contentDescription = "Exporter",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
 
