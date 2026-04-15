@@ -27,16 +27,24 @@ import com.example.neteyeon.screens.NetworkScanningScreen
 import com.example.neteyeon.models.DiscoveredDevice
 import com.example.neteyeon.network.NetworkSecurityReport
 import com.example.neteyeon.screens.HistoryScreen
+import com.example.neteyeon.models.ScanHistoryItem
+import java.util.Date
+import java.util.UUID
 
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val context = LocalContext.current
+    
+    // États pour le scan en cours
     var selectedDevice by remember { mutableStateOf<DiscoveredDevice?>(null) }
     var scanResults by remember { mutableStateOf<List<DiscoveredDevice>>(emptyList()) }
     var securityReport by remember { mutableStateOf<NetworkSecurityReport?>(null) }
+    
+    // Historique des scans (mémoire vive pour l'instant)
+    val scanHistory = remember { mutableStateListOf<ScanHistoryItem>() }
 
-    // Fonction pour vérifier si les permissions nécessaires sont déjà accordées
+    // Fonction pour vérifier les permissions
     fun hasRequiredPermissions(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION
@@ -49,20 +57,14 @@ fun MyApp(modifier: Modifier = Modifier) {
             startDestination = Screen.Onboarding.route
         ) {
             composable(Screen.Onboarding.route) {
-                OnboardingScreen(
-                    onContinueClicked = {
-                        navController.navigate(Screen.Cgu.route)
-                    }
-                )
+                OnboardingScreen(onContinueClicked = { navController.navigate(Screen.Cgu.route) })
             }
 
             composable(Screen.Cgu.route) {
                 CGUScreen(
                     onContinueClicked = {
-                        // Si les permissions sont déjà là, on saute directement au scan Wifi
                         if (hasRequiredPermissions(context)) {
                             navController.navigate(Screen.Scanning.route) {
-                                // On enlève l'écran CGU de la pile pour ne pas y revenir via "Back"
                                 popUpTo(Screen.Cgu.route) { inclusive = true }
                             }
                         } else {
@@ -84,8 +86,8 @@ fun MyApp(modifier: Modifier = Modifier) {
 
             composable(Screen.Scanning.route) {
                 WifiScanScreen(
-                    onContinueClicked = { ipRange ->
-                        navController.navigate(Screen.NetworkScanning.createRoute(ipRange))
+                    onContinueClicked = { ipRange, networkName ->
+                        navController.navigate(Screen.NetworkScanning.createRoute(ipRange, networkName))
                     },
                     onHistoryClicked = {
                         navController.navigate(Screen.History.route)
@@ -95,6 +97,13 @@ fun MyApp(modifier: Modifier = Modifier) {
 
             composable(Screen.History.route) {
                 HistoryScreen(
+                    history = scanHistory,
+                    onItemClicked = { historyItem ->
+                        // Charger les données de l'historique dans l'état global
+                        scanResults = historyItem.devices
+                        securityReport = historyItem.report
+                        navController.navigate(Screen.ScanResults.route)
+                    },
                     onBackClicked = {
                         navController.popBackStack()
                     }
@@ -103,15 +112,32 @@ fun MyApp(modifier: Modifier = Modifier) {
 
             composable(
                 route = Screen.NetworkScanning.route,
-                arguments = listOf(navArgument("ipRange") { type = NavType.StringType })
+                arguments = listOf(
+                    navArgument("ipRange") { type = NavType.StringType },
+                    navArgument("networkName") { type = NavType.StringType }
+                )
             ) { backStackEntry ->
                 val ipRange = backStackEntry.arguments?.getString("ipRange") ?: ""
+                val networkName = backStackEntry.arguments?.getString("networkName") ?: "Inconnu"
+                
                 NetworkScanningScreen(
                     ipRange = ipRange,
-                    onScanFinished = { devices, report ->
+                    networkName = networkName,
+                    onScanFinished = { devices, report, name ->
+                        // 1. Sauvegarder dans l'historique
+                        val newItem = ScanHistoryItem(
+                            id = UUID.randomUUID().toString(),
+                            date = Date(),
+                            networkName = name,
+                            devices = devices,
+                            report = report
+                        )
+                        scanHistory.add(newItem)
+
+                        // 2. Mettre à jour l'état actuel et naviguer
                         scanResults = devices
                         securityReport = report
-                        navController.navigate("results")
+                        navController.navigate(Screen.ScanResults.route)
                     },
                     onBackClicked = { navController.popBackStack() }
                 )

@@ -47,7 +47,7 @@ import java.net.Inet4Address
 
 @Composable
 fun WifiScanScreen(
-    onContinueClicked: (ipRange: String) -> Unit,
+    onContinueClicked: (ipRange: String, networkName: String) -> Unit,
     onHistoryClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -271,7 +271,7 @@ fun WifiScanScreen(
             }
             
             Button(
-                onClick = { onContinueClicked(ipRange) },
+                onClick = { onContinueClicked(ipRange, ssid ?: "Réseau Inconnu") },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -284,5 +284,5 @@ fun WifiScanScreen(
 @Preview(showBackground = true)
 @Composable
 fun WifiScanScreenPreview() {
-    WifiScanScreen(onContinueClicked = {}, onHistoryClicked = {})
+    WifiScanScreen(onContinueClicked = { _, _ -> }, onHistoryClicked = {})
 }

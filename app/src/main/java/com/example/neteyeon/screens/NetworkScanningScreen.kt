@@ -28,7 +28,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun NetworkScanningScreen(
     ipRange: String,
-    onScanFinished: (List<DiscoveredDevice>, NetworkSecurityReport) -> Unit,
+    networkName: String,
+    onScanFinished: (List<DiscoveredDevice>, NetworkSecurityReport, String) -> Unit,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -76,7 +77,8 @@ fun NetworkScanningScreen(
 
             Spacer(modifier = Modifier.height(50.dp))
 
-            Text("Prêt à Scanner le réseau suivant: ", style = MaterialTheme.typography.titleLarge)
+            Text("Prêt à Scanner le réseau :", style = MaterialTheme.typography.titleLarge)
+            Text(text = networkName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -189,7 +191,7 @@ fun NetworkScanningScreen(
 
                                 val report = SecurityScorer.evaluate(results)
                                 try {
-                                    onScanFinished(results, report)
+                                    onScanFinished(results, report, networkName)
                                 } catch (e: Exception) {
                                     Log.e("SCAN_CALLBACK", "Erreur dans onScanFinished", e)
                                 }
@@ -239,7 +241,8 @@ fun PreviewNetworkScanningScreen() {
     NetEyeOnTheme {
         NetworkScanningScreen(
             ipRange = "192.168.1.0/24",
-            onScanFinished = {} as (List<DiscoveredDevice>, NetworkSecurityReport) -> Unit,
+            networkName = "Mon Wifi",
+            onScanFinished = { _, _, _ -> },
             onBackClicked = {}
         )
     }
