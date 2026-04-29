@@ -138,7 +138,7 @@ fun ExportReportScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // ── Bouton Exporter ────────────────────────────────────────────
+            // ── Bouton Télécharger (anciennement Exporter) ─────────────────
             Button(
                 onClick = {
                     scope.launch {
@@ -151,8 +151,8 @@ fun ExportReportScreen(
                                     ExportFormat.CSV  -> ReportExporter.exportCsv(context, historyItem)
                                 }
                             }
-                            // Ouvre le sélecteur de partage/sauvegarde
-                            ReportExporter.shareFile(context, file, selectedFormat.mime)
+                            // Télécharge le fichier au lieu de le partager
+                            ReportExporter.saveToDownloads(context, file, selectedFormat.mime)
                         } catch (e: Exception) {
                             Toast.makeText(context, "Erreur : ${e.message}", Toast.LENGTH_LONG).show()
                         } finally {
@@ -173,7 +173,7 @@ fun ExportReportScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
-                Text(if (isExporting) "Génération..." else "Exporter",
+                Text(if (isExporting) "Téléchargement..." else "Télécharger",
                     style = MaterialTheme.typography.titleMedium)
             }
 

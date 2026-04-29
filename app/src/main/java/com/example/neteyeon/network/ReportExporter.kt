@@ -1,7 +1,12 @@
 package com.example.neteyeon.export
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import com.example.neteyeon.models.DiscoveredDevice
@@ -11,6 +16,7 @@ import com.example.neteyeon.network.NetworkSecurityReport
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -105,9 +111,7 @@ object ReportExporter {
         return file
     }
 
-    // ── PDF (iText / HTML→PDF via PrintManager workaround) ───────────────────
-    // On génère un HTML puis on l'écrit dans un fichier .html partageable,
-    // car iText nécessite une dépendance. Le HTML est complet et imprimable.
+    // ── PDF (HTML) ────────────────────────────────────────────────────────────
     fun exportHtmlAsPdf(
         context: Context,
         item: ScanHistoryItem
@@ -133,6 +137,36 @@ object ReportExporter {
             .createChooserIntent()
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         context.startActivity(intent)
+    }
+
+    // ── Téléchargement (Sauvegarde locale) ────────────────────────────────────
+    fun saveToDownloads(context: Context, file: File, mimeType: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }
+
+            val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+            uri?.let {
+                context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                    file.inputStream().use { inputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                Toast.makeText(context, "Fichier enregistré dans les téléchargements", Toast.LENGTH_SHORT).show()
+            } ?: throw Exception("Impossible de créer le fichier")
+        } else {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val destinationFile = File(downloadsDir, file.name)
+            file.inputStream().use { input ->
+                FileOutputStream(destinationFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            Toast.makeText(context, "Fichier enregistré : ${destinationFile.absolutePath}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // ── HTML ──────────────────────────────────────────────────────────────────
@@ -241,7 +275,7 @@ $recommendations
         com.example.neteyeon.models.SecurityFlag.UNKNOWN_DEVICE ->
             "Identifiez cet appareil. Un appareil inconnu sur votre réseau peut être un signe d'intrusion."
         com.example.neteyeon.models.SecurityFlag.OLD_SERVICE_BANNER ->
-            "Mettez à jour le service détecté. Les versions anciennes contiennent souvent des vulnérabilités connues (CVE)."
+            "Mettez à jour le service détecté. Les versions anciennes contiennent souvent des vulnérables connues (CVE)."
     }
 
     private fun recommendation(severity: Severity) = when (severity) {
