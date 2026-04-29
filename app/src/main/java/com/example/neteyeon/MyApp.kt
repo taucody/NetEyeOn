@@ -28,6 +28,7 @@ import com.example.neteyeon.models.DiscoveredDevice
 import com.example.neteyeon.network.NetworkSecurityReport
 import com.example.neteyeon.screens.HistoryScreen
 import com.example.neteyeon.models.ScanHistoryItem
+import com.example.neteyeon.screens.ExportReportScreen
 import java.util.Date
 import java.util.UUID
 
@@ -104,6 +105,9 @@ fun MyApp(modifier: Modifier = Modifier) {
                         securityReport = historyItem.report
                         navController.navigate(Screen.ScanResults.route)
                     },
+                    onExportClicked = { historyItem ->
+                        navController.navigate(Screen.ExportReport.createRoute(historyItem.id))
+                    },
                     onBackClicked = {
                         navController.popBackStack()
                     }
@@ -153,8 +157,29 @@ fun MyApp(modifier: Modifier = Modifier) {
                     onDeviceClicked = { device ->
                         selectedDevice = device
                         navController.navigate(Screen.DeviceDetails.route)
+                    },
+                    onExportClicked = {
+                        // Récupère l'item le plus récent de l'historique
+                        val lastItem = scanHistory.lastOrNull()
+                        if (lastItem != null) {
+                            navController.navigate(Screen.ExportReport.createRoute(lastItem.id))
+                        }
                     }
                 )
+            }
+
+            composable(
+                route = Screen.ExportReport.route,
+                arguments = listOf(navArgument("historyId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val historyId = backStackEntry.arguments?.getString("historyId")
+                val item = scanHistory.find { it.id == historyId }
+                item?.let {
+                    ExportReportScreen(
+                        historyItem = it,
+                        onBackClicked = { navController.popBackStack() }
+                    )
+                }
             }
 
             composable(Screen.DeviceDetails.route) {
