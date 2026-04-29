@@ -19,7 +19,7 @@ class NetworkScanner {
     // Ports à scanner selon profil
     private val basicPorts    = listOf(80, 443, 22, 23)
     private val advancedPorts = listOf(21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 3389, 8080, 8443)
-    private val customPorts   = listOf(
+    private val defaultCustomPorts = listOf(
         21, 22, 23, 25, 53, 80, 110, 143, 443, 445,
         3306, 3389, 5900, 6379, 8080, 8443, 27017
     )
@@ -27,6 +27,7 @@ class NetworkScanner {
     suspend fun scanRange(
         ipRange: String,
         scanProfile: String = "Basique",
+        customPorts: List<Int>? = null,
         onProgress: (Int, Int) -> Unit
     ): List<DiscoveredDevice> = withContext(Dispatchers.IO) {
 
@@ -41,7 +42,7 @@ class NetworkScanner {
         for (chunk in ips.chunked(20)) {
             val deferreds = chunk.map { ip ->
                 async {
-                    val device = scanIp(ip, scanProfile, arpCache)
+                    val device = scanIp(ip, scanProfile, customPorts, arpCache)
                     synchronized(discoveredDevices) {
                         if (device != null) discoveredDevices.add(device)
                         current++
@@ -59,6 +60,7 @@ class NetworkScanner {
     private fun scanIp(
         ip: String,
         scanProfile: String,
+        customPortsList: List<Int>?,
         arpCache: Map<String, String>
     ): DiscoveredDevice? {
         return try {
@@ -73,7 +75,7 @@ class NetworkScanner {
 
             val portsToScan = when (scanProfile) {
                 "Avance" -> advancedPorts
-                "Custom" -> customPorts
+                "Custom" -> customPortsList ?: defaultCustomPorts
                 else     -> basicPorts
             }
 
